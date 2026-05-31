@@ -1,0 +1,55 @@
+import java.util.*;
+
+class AVLNode {
+    int isbn;
+    String title;
+    AVLNode left, right;
+    int height = 1;
+
+    AVLNode(int isbn) {
+        this.isbn = isbn;
+    }
+}
+
+class LibraryAVL {
+
+    // Returns up to k ISBNs in ASCENDING order (smallest first)
+    static List<Integer> topKAscending(AVLNode root, int k) {
+        List<Integer> result = new ArrayList<>();
+        inOrder(root, k, result);  // helper does the real work
+        return result;
+    }
+
+    // In-order helper: left -> visit -> right
+    static void inOrder(AVLNode node, int k, List<Integer> result) {
+        // Base case: if node is null OR we already have k results, stop
+        if (node == null || result.size() == k) return;
+
+        // Step 1: Recurse LEFT first (smaller values)
+        inOrder(node.left, k, result);
+
+        // Step 2: Visit current node — but only if we still need more
+        if (result.size() < k) {
+            result.add(node.isbn);
+        }
+
+        // Step 3: Recurse RIGHT (larger values)
+        inOrder(node.right, k, result);
+    }
+
+    public static void main(String[] args) {
+        // Build the AVL tree from part (a)
+        AVLNode root = new AVLNode(50);
+        root.left = new AVLNode(30);
+        root.right = new AVLNode(70);
+        root.left.left = new AVLNode(20);
+        root.left.right = new AVLNode(40);
+        root.right.left = new AVLNode(60);
+        root.right.right = new AVLNode(80);
+
+        // Get top 3 smallest ISBNs
+        List<Integer> top3 = topKAscending(root, 3);
+        System.out.println("Top 3 ISBNs: " + top3);
+        // Output: Top 3 ISBNs: [20, 30, 40]
+    }
+}
