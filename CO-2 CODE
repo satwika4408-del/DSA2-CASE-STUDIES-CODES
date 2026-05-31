@@ -1,0 +1,88 @@
+class PSegNode {
+    long sum;
+    PSegNode left, right;
+
+    // Constructor
+    PSegNode(long s, PSegNode l, PSegNode r) {
+        sum = s;
+        left = l;
+        right = r;
+    }
+}
+
+class PersistentSegTree {
+
+    // Build initial segment tree from array
+    static PSegNode build(int[] arr, int lo, int hi) {
+        if (lo == hi) {
+            return new PSegNode(arr[lo - 1], null, null); // leaf
+        }
+        int mid = (lo + hi) / 2;
+        PSegNode left = build(arr, lo, mid);
+        PSegNode right = build(arr, mid + 1, hi);
+        return new PSegNode(left.sum + right.sum, left, right);
+    }
+
+    // Create new version with point update at index idx
+    // Returns NEW root — old root is unchanged!
+    static PSegNode pointUpdate(PSegNode node, int lo, int hi, int idx, long delta) {
+
+        // TODO 1: Base case — we reached the target leaf
+        if (lo == hi) {
+            // Create a brand new leaf node with updated sum
+            return new PSegNode(node.sum + delta, null, null);
+        }
+
+        // TODO 2: Find the midpoint to split left/right
+        int mid = (lo + hi) / 2;
+
+        PSegNode newLeft, newRight;
+
+        // TODO 3: Recurse into the half that contains idx
+        if (idx <= mid) {
+            // idx is in LEFT half: create new left child, SHARE right child
+            newLeft = pointUpdate(node.left, lo, mid, idx, delta);
+            newRight = node.right; // SHARED — not copied!
+        } else {
+            // idx is in RIGHT half: SHARE left child, create new right child
+            newLeft = node.left;  // SHARED — not copied!
+            newRight = pointUpdate(node.right, mid + 1, hi, idx, delta);
+        }
+
+        // TODO 4: Return a new internal node with updated sum
+        return new PSegNode(newLeft.sum + newRight.sum, newLeft, newRight);
+    }
+
+    // Range sum query on a version
+    static long query(PSegNode node, int lo, int hi, int l, int r) {
+        if (r < lo || hi < l) return 0;        // out of range
+        if (l <= lo && hi <= r) return node.sum; // fully inside range
+        int mid = (lo + hi) / 2;
+        return query(node.left, lo, mid, l, r)
+             + query(node.right, mid + 1, hi, l, r);
+    }
+
+    public static void main(String[] args) {
+        int[] scores = {10, 5, 20, 8, 15, 3, 25, 12};
+        int n = 8;
+
+        // Build v0
+        PSegNode v0 = build(scores, 1, n);
+        System.out.println("v0 total: " + v0.sum); // 98
+
+        // v1: scores[3] += 30
+        PSegNode v1 = pointUpdate(v0, 1, n, 3, 30);
+        System.out.println("v1 total: " + v1.sum); // 128
+
+        // v2: scores[6] -= 2
+        PSegNode v2 = pointUpdate(v1, 1, n, 6, -2);
+        System.out.println("v2 total: " + v2.sum); // 126
+
+        // Query v1: sum of positions 3 to 6
+        long rangeSum = query(v1, 1, n, 3, 6);
+        System.out.println("v1 range[3..6]: " + rangeSum); // 50+8+15+3 = 76
+
+        // v0 is UNCHANGED even after updates
+        System.out.println("v0 still: " + v0.sum); // 98 (unchanged!)
+    }
+}
