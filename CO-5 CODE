@@ -1,0 +1,35 @@
+class CountingSort {
+    static int[] countingSort(int[] arr, int minVal, int maxVal) {
+        int range = maxVal - minVal + 1;  // k = 46 for marks [10..55]
+        int[] count = new int[range];
+        int[] output = new int[arr.length];
+
+        // Step 1: Count occurrences (shift values by minVal)
+        for (int x : arr) {
+            count[x - minVal]++;
+        }
+
+        // Step 2: Prefix sum (cumulative count)
+        for (int i = 1; i < range; i++) {
+            count[i] += count[i - 1];
+        }
+
+        // Step 3: Build output RIGHT-TO-LEFT for stability
+        for (int i = arr.length - 1; i >= 0; i--) {
+            int val = arr[i];
+            int pos = count[val - minVal] - 1;  // 0-indexed position
+            output[pos] = val;
+            count[val - minVal]--;              // decrement for next duplicate
+        }
+
+        return output;
+    }
+
+    public static void main(String[] args) {
+        int[] marks = {38, 27, 43, 10, 27, 55, 19, 43};
+        int[] sorted = countingSort(marks, 10, 55);
+        System.out.print("Sorted: ");
+        for (int m : sorted) System.out.print(m + " ");
+        // Output: Sorted: 10 19 27 27 38 43 43 55
+    }
+}
