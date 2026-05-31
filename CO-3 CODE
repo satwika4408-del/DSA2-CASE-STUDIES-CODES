@@ -1,0 +1,77 @@
+import java.util.*;
+
+class Frame {
+    String node;
+    boolean processed;
+    Frame(String n, boolean p) { node = n; processed = p; }
+}
+
+class TopologicalSort {
+
+    static List<String> topoSort(Map<String, List<String>> adj, String start) {
+        // Colour map: 0 = WHITE (unvisited), 1 = GREY (in progress), 2 = BLACK (done)
+        Map<String, Integer> color = new HashMap<>();
+        List<String> order = new ArrayList<>();
+        Deque<Frame> stack = new ArrayDeque<>();
+
+        // Initialize all nodes as WHITE
+        for (String node : adj.keySet()) {
+            color.put(node, 0);
+        }
+
+        // Push start node
+        stack.push(new Frame(start, false));
+
+        while (!stack.isEmpty()) {
+            Frame f = stack.pop();
+
+            if (f.processed) {
+                // TODO 1: This node is fully explored
+                color.put(f.node, 2);  // mark BLACK
+                order.add(f.node);      // add to result
+                continue;
+            }
+
+            // Skip if already visited (GREY or BLACK)
+            if (color.get(f.node) != 0) continue;
+
+            // TODO 2: First visit — mark GREY
+            color.put(f.node, 1);
+
+            // Push this node again with processed=true (for post-order)
+            stack.push(new Frame(f.node, true));
+
+            // TODO 3: Push WHITE neighbours in REVERSE alphabetical order
+            // (reverse because stack is LIFO — last pushed = first processed)
+            List<String> neighbours = adj.getOrDefault(f.node, new ArrayList<>());
+            List<String> sortedNeighbours = new ArrayList<>(neighbours);
+            Collections.sort(sortedNeighbours, Collections.reverseOrder());
+
+            for (String neighbour : sortedNeighbours) {
+                if (color.get(neighbour) == 0) {  // only WHITE nodes
+                    stack.push(new Frame(neighbour, false));
+                }
+            }
+        }
+
+        // Reverse to get topological order
+        Collections.reverse(order);
+        return order;
+    }
+
+    public static void main(String[] args) {
+        // Build the course prerequisite graph
+        Map<String, List<String>> adj = new LinkedHashMap<>();
+        adj.put("Maths",       Arrays.asList("Physics", "Chemistry", "Programming"));
+        adj.put("Physics",     Arrays.asList("Electronics"));
+        adj.put("Chemistry",   new ArrayList<>());
+        adj.put("Electronics", new ArrayList<>());
+        adj.put("Programming", Arrays.asList("DSA", "DBMS"));
+        adj.put("DSA",         new ArrayList<>());
+        adj.put("DBMS",        new ArrayList<>());
+
+        List<String> result = topoSort(adj, "Maths");
+        System.out.println("Study Order: " + result);
+        // Output: Study Order: [Maths, Programming, DSA, DBMS, Physics, Electronics, Chemistry]
+    }
+}
